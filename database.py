@@ -1,15 +1,26 @@
+
 import sqlite3
-import database
+import shutil
+import os
+
+DB_PATH = "/tmp/hospital.db"
+SOURCE_DB = os.path.join(os.path.dirname(__file__), "hospital.db")
+
+def _ensure_db():
+    if not os.path.exists(DB_PATH):
+        shutil.copy(SOURCE_DB, DB_PATH)
 
 def _normalize(text: str) -> str:
     return text.lower().replace(" ", "")
-
+import sqlite3
 def save_appointment(patient, doctor, time):
     patient = _normalize(patient)
     doctor = _normalize(doctor)
     time = _normalize(time)
 
-    connection = sqlite3.connect("hospital.db")
+    _ensure_db()
+
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     cursor.execute("""
@@ -29,8 +40,10 @@ def save_appointment(patient, doctor, time):
     connection.close()
 
     return f"{patient} appointment booked with {doctor} at {time}"
+import sqlite3
 def get_patient_appointment(patient,doctor):
-    connection = sqlite3.connect("hospital.db")
+    _ensure_db()
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("SELECT * FROM appointments WHERE patient=? AND doctor=? ",(_normalize(patient), _normalize(doctor)))
     row = cursor.fetchall()
@@ -43,8 +56,10 @@ def get_patient_appointment(patient,doctor):
         for p, d, t in row
     ]
     return "\n\n".join(lines)
+import sqlite3
 def cancel_appointment(patient, doctor, time):
-    connection = sqlite3.connect("hospital.db")
+    _ensure_db()
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(
         "SELECT * FROM appointments WHERE patient=? AND doctor=? AND time=?",(
@@ -64,8 +79,10 @@ def cancel_appointment(patient, doctor, time):
     )
     connection.commit()
     connection.close()
+
+    _ensure_db()
  
-    connection2 = sqlite3.connect("hospital.db")
+    connection2 = sqlite3.connect(DB_PATH)
     cursor2 = connection2.cursor()
     cursor2.execute(
         "INSERT INTO doctors (doctor, time) VALUES (?, ?)",
@@ -75,9 +92,11 @@ def cancel_appointment(patient, doctor, time):
     connection2.close()
  
     return f"{patient}'s appointment with {doctor} at {time} has been cancelled"
+import sqlite3
 def update_appointment(patient, doctor, old_time, new_time):
+    _ensure_db()
    
-    connection = sqlite3.connect("hospital.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute("SELECT time FROM doctors WHERE doctor=?", (_normalize(doctor),))
     rows = cursor.fetchall()
@@ -88,8 +107,10 @@ def update_appointment(patient, doctor, old_time, new_time):
  
     if new_time_n not in slots:
         return f"Cannot reschedule. {new_time} is not available. Available slots: {', '.join(slots)}"
+
+    _ensure_db()
  
-    connection = sqlite3.connect("hospital.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(
         "UPDATE appointments SET time=? WHERE patient=? AND doctor=? AND time=?",
@@ -104,8 +125,10 @@ def update_appointment(patient, doctor, old_time, new_time):
  
     if updated_rows == 0:
         return f"No existing appointment found for {patient} with {doctor} at {old_time}"
+
+    _ensure_db()
  
-    connection = sqlite3.connect("h1.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(
         "DELETE FROM doctors WHERE doctor=? AND time=?",
@@ -119,8 +142,10 @@ def update_appointment(patient, doctor, old_time, new_time):
     connection.close()
  
     return f"{patient}'s appointment with {doctor} rescheduled from {old_time} to {new_time}"
+import sqlite3
 def get_slots(doctor):
-    connection = sqlite3.connect("hospital.db")
+    _ensure_db()
+    connection = sqlite3.connect(DB_PATH)
     cursor=connection.cursor()
     cursor.execute(
         "SELECT time FROM doctors WHERE doctor=?", (_normalize(doctor),)
@@ -132,9 +157,11 @@ def get_slots(doctor):
         slots.append(row[0])
         
     return slots
+import sqlite3
 
 def get_doctor_details():
-    connection = sqlite3.connect("hospital.db")
+    _ensure_db()
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
     cursor.execute(
         "SELECT DISTINCT doctor FROM doctors"
@@ -147,8 +174,9 @@ def get_doctor_details():
     return doctor
 
 def appointment_exists(patient, doctor, time):
+    _ensure_db()
 
-    connection = sqlite3.connect("hospital.db")
+    connection = sqlite3.connect(DB_PATH)
     cursor = connection.cursor()
 
     cursor.execute(
