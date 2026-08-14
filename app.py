@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
 #from mgen import run_agent
@@ -7,14 +7,13 @@ from pydantic import BaseModel
 app = FastAPI()
 
 
+@app.get("/")
+def root():
+    return RedirectResponse(url="/chat-ui")
+
+
 class ChatRequest(BaseModel):
     message: str
-
-@app.get("/chat-ui")
-def chat_ui():
-    return {
-        "message": "Chat UI route is working"
-    }
 
 
 @app.post("/chat")
@@ -22,6 +21,7 @@ def chat(request: ChatRequest):
     return {
         "response": f"Received: {request.message}"
     }
+
 
 @app.get("/chat-ui", response_class=HTMLResponse)
 def chat_ui():
