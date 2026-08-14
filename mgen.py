@@ -7,7 +7,7 @@ import notifications
 import os 
 from dotenv import load_dotenv
 load_dotenv()
-connection =sqlite3.connect("hospital.db")
+
 
 client = OpenAI(
     api_key=os.getenv("GROQ_API_KEY"),
