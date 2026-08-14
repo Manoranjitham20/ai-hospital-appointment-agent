@@ -10,10 +10,10 @@ app = FastAPI()
 class ChatRequest(BaseModel):
     message: str
 
-@app.get("/")
-def home():
+@app.get("/chat-ui")
+def chat_ui():
     return {
-        "message": "AI Hospital Appointment Agent is running"
+        "message": "Chat UI route is working"
     }
 
 
