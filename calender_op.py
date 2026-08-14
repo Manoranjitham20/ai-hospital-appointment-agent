@@ -1,29 +1,37 @@
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
-from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 import os
+import json
 
 SCOPES = ["https://www.googleapis.com/auth/calendar"]
+def _normalize(text: str) -> str:
+    return text.lower().replace(" ", "")
 
 def get_calendar_service():
-    creds = None
-    if os.path.exists("token.json"):
-        creds = Credentials.from_authorized_user_file("token.json", SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
-        else:
-            flow = InstalledAppFlow.from_client_secrets_file("credentials.json",SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open("token.json", "w") as token:
-            token.write(creds.to_json())
-    service = build("calendar", "v3", credentials=creds)
+
+    token_json = os.getenv("GOOGLE_TOKEN_JSON")
+
+    if not token_json:
+        raise Exception("GOOGLE_TOKEN_JSON is not configured")
+
+    token_data = json.loads(token_json)
+
+    creds = Credentials.from_authorized_user_info(
+        token_data,
+        SCOPES
+    )
+
+    if creds.expired and creds.refresh_token:
+        creds.refresh(Request())
+
+    service = build(
+        "calendar",
+        "v3",
+        credentials=creds
+    )
 
     return service
-if __name__ == "__main__":
-    service = get_calendar_service()
-    print("Google Calendar Connected Successfully")
 
 from datetime import datetime, timedelta
 
