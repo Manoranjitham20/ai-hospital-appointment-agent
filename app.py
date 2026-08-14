@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 
-from mgen import run_agent
+#from mgen import run_agent
 
 app = FastAPI()
 
@@ -19,10 +19,8 @@ def home():
 
 @app.post("/chat")
 def chat(request: ChatRequest):
-    result = run_agent(request.message)
-
     return {
-        "response": result
+        "response": f"Received: {request.message}"
     }
 
 @app.get("/chat-ui", response_class=HTMLResponse)
