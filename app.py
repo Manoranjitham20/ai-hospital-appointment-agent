@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 
-#from mgen import run_agent
+from mgen import run_agent
 
 app = FastAPI()
 
