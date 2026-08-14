@@ -18,10 +18,10 @@ class ChatRequest(BaseModel):
 
 @app.post("/chat")
 def chat(request: ChatRequest):
+    reply = run_agent(request.message)
     return {
-        "response": f"Received: {request.message}"
+        "response": reply
     }
-
 
 @app.get("/chat-ui", response_class=HTMLResponse)
 def chat_ui():
